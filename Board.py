@@ -1,10 +1,22 @@
 class Board:
-    def __init__(self, height, width):
+    def __init__(self, height, width, state=None):
         self.height = height
         self.width = width
-        self.state = []
-        [self.state.append(['.']*width) for _ in range(height)]
-    
+
+        if state:
+            # quick check if state dim. OK
+            if len(state) == height:
+                if len(state[0]) == width:
+                    self.state = state
+                else:
+                    state = None
+            else:
+                state = None
+        
+        if not state:
+            self.state = []
+            [self.state.append(['.']*width) for _ in range(height)]
+
 
     def addChipOnColumn(self, col_n, isPlayer1):
         if col_n not in self.validMove():

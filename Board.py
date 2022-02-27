@@ -1,25 +1,13 @@
 class Board:
-    def __init__(self, height, width, state=None):
+    def __init__(self, height, width):
         self.height = height
         self.width = width
-
-        if state:
-            # quick check if state dim. OK
-            if len(state) == height:
-                if len(state[0]) == width:
-                    self.state = state
-                else:
-                    state = None
-            else:
-                state = None
-        
-        if not state:
-            self.state = []
-            [self.state.append(['.']*width) for _ in range(height)]
+        self.state = []
+        [self.state.append(['.']*width) for _ in range(height)]
 
 
     def addChipOnColumn(self, col_n, isPlayer1):
-        if col_n not in self.validMove():
+        if col_n not in self.validMoves():
             return False
         for i in range(self.height):
             if self.state[i][col_n] == '.':
@@ -27,7 +15,7 @@ class Board:
                 break
         return True
 
-    def validMove(self):
+    def validMoves(self):
         validMoveList = []
         for i in range(self.width):
             if self.state[self.height-1][i] == '.':
@@ -51,10 +39,7 @@ class Board:
     # if < 4, there must still be place around to make 4 to count
     def evaluate(self, chip): 
         # Check for draw
-        countEmpty = 0
-        for row in self.state:
-            countEmpty += row.count('.')
-        if countEmpty == 0:
+        if len(self.validMoves()) == 0:
             return 0
 
         stateTransposed = []
@@ -101,7 +86,7 @@ class Board:
             s = ''.join(row)
 
             if chip*4 in s:
-                return 4
+                return 20
             elif ('.'+chip*3) in s or (chip*3+'.') in s or (chip+'.'+2*chip) in s or (2*chip+'.'+chip) in s:
                 maxScore = 3
             elif ('..'+chip*2) in s or (chip*2+'..') in s or ('.'+chip*2+'.') in s or (chip+'..'+chip) in s:
@@ -110,3 +95,11 @@ class Board:
                 maxScore = max(maxScore, 1)
 
         return maxScore
+
+    # for the minimax algorithm
+    def undoMove(self, move):
+        for i in range(self.height-1, -1, -1):
+            if self.state[i][move] == 'X' or self.state[i][move] == 'O':
+                self.state[i][move] = '.'
+                return True
+        return False

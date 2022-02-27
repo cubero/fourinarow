@@ -1,7 +1,8 @@
 import random, copy
 from Board import Board
 
-minimaxDepth = 5
+Infinity = 10000
+minimaxDepth = 6
 
 class Game:
     def __init__(self, param):
@@ -22,7 +23,7 @@ class Game:
             if player1Status == 20 or player2Status == 20:
                 self.isOver = True
                 self.board.display()
-                print(f"Game Over - Player {1 if player1Status==4 else 2} won !")
+                print(f"Game Over - Player {1 if player1Status==20 else 2} won !")
             elif player1Status == 0:
                 self.isOver = True
                 self.board.display()
@@ -42,14 +43,14 @@ class Game:
 
         else:   # Playing against the AI
             simBoard = copy.deepcopy(self.board)
-            pos = minimax(simBoard, minimaxDepth, self.player1Turn)
+            pos = minimax(simBoard, minimaxDepth, -Infinity, Infinity, False)
             self.board.addChipOnColumn(pos, self.player1Turn)
 
             # for debugging:
             # print(f"Player 1's status = {self.board.evaluate('O')}")
             # print(f"Player 2's status = {self.board.evaluate('X')}")
 
-def minimax(board, depth, player1Turn):
+def minimax(board, depth, alpha, beta, player1Turn):
 
     evaluationX = board.evaluate('X')
     evaluationO = board.evaluate('O')
@@ -57,19 +58,38 @@ def minimax(board, depth, player1Turn):
         evaluation = evaluationO - evaluationX
         return evaluation
 
-    scores = []
-    for move in board.validMoves():
-        board.addChipOnColumn(move, player1Turn)
-        score = minimax(board, depth - 1, not player1Turn)
-        board.undoMove(move)
-        scores.append(score)
-
-
     if player1Turn:
-            return max(scores)
+        maxScore = -Infinity
+        bestMove = None
+
+        for move in board.validMoves():
+            board.addChipOnColumn(move, True)
+            score = minimax(board, depth - 1, alpha, beta, False)
+            board.undoMove(move)
+            if score > maxScore:
+                maxScore = score
+            alpha = max(score, alpha)
+            if alpha >= beta:
+                break
+
+        return maxScore
+
     else:
+        minScore = Infinity
+        bestMove = None
+
+        for move in board.validMoves():
+            board.addChipOnColumn(move, False)
+            score = minimax(board, depth - 1, alpha, beta, True)
+            board.undoMove(move)
+            if score < minScore:
+                minScore = score
+                bestMove = move
+            beta = min(score, beta)
+            if alpha >= beta:
+                break
+
         if depth == minimaxDepth:
-            # print(scores)
-            return board.validMoves()[scores.index(min(scores))]
+            return bestMove
         else:
-            return min(scores)
+            return minScore
